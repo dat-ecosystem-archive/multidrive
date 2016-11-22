@@ -1,0 +1,32 @@
+{
+  "name": "multidrive",
+  "version": "2.0.0",
+  "description": "Manage multiple hyperdrive instances",
+  "main": "index.js",
+  "scripts": {
+    "deps": "dependency-check . && dependency-check . --extra --no-dev",
+    "test": "standard && npm run deps",
+    "test:cov": "standard && npm run deps"
+  },
+  "repository": "yoshuawuyts/multidrive",
+  "keywords": [
+    "hyperdrive",
+    "hypercore",
+    "dat"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "concat-stream": "^1.5.2",
+    "explain-error": "^1.0.3",
+    "hyperdrive": "^7.8.0",
+    "level": "^1.5.0",
+    "map-limit": "0.0.1",
+    "pump": "^1.0.1"
+  },
+  "devDependencies": {
+    "dependency-check": "^2.6.0",
+    "istanbul": "^0.4.5",
+    "standard": "^8.5.0",
+    "tape": "^4.6.2"
+  }
+}
