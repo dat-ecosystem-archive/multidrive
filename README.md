@@ -14,7 +14,8 @@ const drives = multidrive('my-cool-archive', function (err) {
   if (err) console.error(err)
 })
 
-drives.create('cute-cats', process.cwd(), (err, drive) => {
+const driveLocation = process.cwd()
+drives.create('cute-cats', driveLocation, (err, drive) => {
   if (err) return console.error(err)
 
   // drive === [HyperDrive]
