@@ -1,3 +1,4 @@
+const namedLevel = require('named-level-store')
 const hyperdrive = require('hyperdrive')
 const explain = require('explain-error')
 const concat = require('concat-stream')
@@ -16,7 +17,7 @@ function MultiDrive (name, cb) {
 
   const self = this
 
-  this.db = level(name)
+  this.db = namedLevel(name)
   this.drives = {}
   this.queue = []
 
