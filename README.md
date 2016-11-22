@@ -14,11 +14,19 @@ const drives = multidrive('my-cool-archive', function (err) {
   if (err) console.error(err)
 })
 
-drives.list((err, drives) => {
-  if (err) console.error(err)
-  Object.keys(drives).forEach((key) => {
-    const drive = drives[key]
-    discovery(drive)
+drives.create('cute-cats', (err, drive) => {
+  if (err) return console.error(err)
+
+  // drive === [HyperDrive]
+  drives.list((err, drives) => {
+    if (err) console.error(err)
+
+    // drives === { 'cute-cats': [HyperDrive] }
+    Object.keys(drives).forEach((key) => {
+      const drive = drives[key]
+      const archive = drive.createArchive()
+      discovery(archive)
+    })
   })
 })
 ```
@@ -41,6 +49,10 @@ Delete a named `hyperdrive`
 ```sh
 $ npm install multidrive
 ```
+
+## See Also
+- https://github.com/karissa/hyperdrive-archive-swarm
+- https://github.com/mafintosh/hyperdrive
 
 ## License
 [MIT](https://tldrlegal.com/license/mit-license)
