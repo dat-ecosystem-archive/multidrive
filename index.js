@@ -39,8 +39,8 @@ function MultiDrive (name, cb) {
       level(directory, function (err, db) {
         if (err) return done(explain(err, 'multidrive: error recreating database in ' + directory))
 
-        db.location = directory
         const drive = hyperdrive(db)
+        drive.location = directory
         self.drives[name] = drive
         done()
       })
@@ -58,8 +58,8 @@ MultiDrive.prototype.create = function (name, directory, cb) {
 
   level(directory, function (err, db) {
     if (err) return cb(explain(err, 'multidrive: error creating database'))
-    db.location = directory
     const drive = hyperdrive(db)
+    drive.location = directory
 
     self.db.put(name, directory, function (err) {
       if (err) return cb(err)

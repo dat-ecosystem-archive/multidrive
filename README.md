@@ -47,6 +47,11 @@ Create a new named `hyperdrive` under `location`
 Delete a named `hyperdrive` from the `multidrive` instance. __Does not delete
 any files on disk__, only the record that's part of `multidrive`.
 
+## FAQ
+### How can I get the location of a drive?
+Each `hyperdrive` exposes a `.location` property which is the location where
+the drive is currently stored.
+
 ## Installation
 ```sh
 $ npm install multidrive
