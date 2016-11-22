@@ -1,6 +1,6 @@
 {
   "name": "multidrive",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Manage multiple hyperdrives in a central location",
   "main": "index.js",
   "scripts": {
