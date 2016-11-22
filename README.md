@@ -10,16 +10,16 @@ passed in on creation.
 const discovery = require('hyperdiscovery')
 const multidrive = require('multidrive')
 
-const drives = multidrive('my-cool-archive', function (err) {
+const manager = multidrive('my-cool-archive', function (err) {
   if (err) console.error(err)
 })
 
 const driveLocation = process.cwd()
-drives.create('cute-cats', driveLocation, (err, drive) => {
+manager.create('cute-cats', driveLocation, (err, drive) => {
   if (err) return console.error(err)
 
   // drive === [HyperDrive]
-  drives.list((err, drives) => {
+  manager.list((err, drives) => {
     if (err) console.error(err)
 
     // drives === { 'cute-cats': [HyperDrive] }
@@ -33,17 +33,17 @@ drives.create('cute-cats', driveLocation, (err, drive) => {
 ```
 
 ## API
-### drives = multidrive(name, callback)
+### manager = multidrive(name, callback)
 Create a new `multidrive` instance
 
-### drives.list(callback(err, drives))
+### manager.list(callback(err, drives))
 List all drives in the `multidrive`. `drives` is a key-value object where keys
 are names, and values are hyperdrive instances
 
-### drives.create(name, location, callback(err, drive))
+### manager.create(name, location, callback(err, drive))
 Create a new named `hyperdrive` under `location`
 
-### drives.delete(name, callback(err))
+### manager.delete(name, callback(err))
 Delete a named `hyperdrive` from the `multidrive` instance. __Does not delete
 any files on disk__, only the record that's part of `multidrive`.
 
