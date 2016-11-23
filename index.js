@@ -12,6 +12,8 @@ module.exports = MultiDrive
 // manage a collection of hyperdrives
 // (str, fn) -> null
 function MultiDrive (name, cb) {
+  if (!(this instanceof MultiDrive)) return new MultiDrive(name, cb)
+
   assert.equal(typeof name, 'string', 'multidrive: name should be a string')
   assert.equal(typeof cb, 'function', 'multidrive: cb should be a function')
 
