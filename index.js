@@ -31,7 +31,7 @@ function MultiDrive (name, cb) {
   function sink (pairs) {
     mapLimit(pairs, 1, iterator, function (err) {
       if (err) return cb(err)
-      while (self.queue) self.queue.shift()()
+      while (self.queue.length) self.queue.shift()()
     })
 
     function iterator (pair, done) {
