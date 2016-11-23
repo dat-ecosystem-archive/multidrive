@@ -2,54 +2,110 @@
 [![npm version][2]][3] [![build status][4]][5]
 [![downloads][8]][9] [![js-standard-style][10]][11]
 
-Manage multiple hyperdrives. Stores `hyperdrive` databases in a location that's
-passed in on creation.
+Manage multiple hyperdrive archives located anywhere on the filesystem.
 
 ## Usage
 ```js
-const discovery = require('hyperdiscovery')
-const multidrive = require('multidrive')
+var discovery = require('hyperdiscovery')
+var raf = require('random-access-file')
+var multidrive = require('multidrive')
+var path = require('path')
 
-const manager = multidrive('my-cool-archive', function (err) {
+multidrive('my-cool-drive', function (err, drive) {
   if (err) console.error(err)
-})
 
-const driveLocation = process.cwd()
-manager.create('cute-cats', driveLocation, (err, drive) => {
-  if (err) return console.error(err)
+  drive.createArchive(process.cwd(), function (err, archive) {
+    if (err) return console.error(err)
 
-  // drive === [HyperDrive]
-  manager.list((err, drives) => {
-    if (err) console.error(err)
+    // archive === [HyperDriveArchive]
+    drive.list(function (err, archives) {
+      if (err) console.error(err)
 
-    // drives === { 'cute-cats': [HyperDrive] }
-    Object.keys(drives).forEach((key) => {
-      const drive = drives[key]
-      const archive = drive.createArchive()
-      discovery(archive)
+      // archives === { '/usr/tiny-cat/drives': [HyperDriveArchive] }
+      Object.keys(archives).forEach(function (key) {
+        var archive = archives[key]
+        discovery(archive)
+      })
     })
   })
 })
 ```
 
+To replicate an existing archive pass in a key to `drive.createArchive` as
+`opts.key`:
+```js
+var multidrive = require('multidrive')
+
+multidrive('my-cool-archive', function (err, drive) {
+  if (err) console.error(err)
+
+  var key = '<64 bit hex string>'
+  drive.createArchive(process.cwd(), { key: key }, function (err, archive) {
+    if (err) return console.error(err)
+    console.log(archive)
+  })
+})
+```
+
 ## API
-### manager = multidrive(name, callback)
-Create a new `multidrive` instance
+### multidrive(name, [opts], callback(err, drive))
+Create a new `multidrive` instance. The `level` database used to store
+multidrive metadata is stored under `~/.level/<drivename>`. Each drive on the
+system is stateful and must have a unique name to prevent conflicts.
 
-### manager.list(callback(err, drives))
-List all drives in the `multidrive`. `drives` is a key-value object where keys
-are names, and values are hyperdrive instances
+`opts` is an options object that is passed to each `hyperdrive.createArchive`
+call internally. `opts` can have the following values:
+```js
+{
+  live: false, // set this to share archives without finalizing them
+  sparse: false, // set this to only download the pieces of the feeds you are requesting / prioritizing
+  file: function (name) {
+    // set this to determine how file data is stored.
+    // the storage instance should implement the hypercore storage api
+    // https://github.com/mafintosh/hypercore#storage-api
+    return someStorageInstance
+  }
+}
+```
 
-### manager.create(name, location, callback(err, drive))
-Create a new named `hyperdrive` under `location`
+### drive.list(callback(err, drives))
+List all `archives` in the `multidrive`. `drives` is a key-value object where
+keys are file paths, and values are hyperdrive archives.
 
-### manager.delete(name, callback(err))
+### drive.createArchive(location, [opts], callback(err, drive))
+Create a new named `hyperdrive` under `location`. To replicate an existing
+drive pass in `opts.key`. `opts.key` and `opts.secretKey` (for archives with
+write access only) are stored on the filesystem in the drive `locations` as
+`KEY` and `SECRET_KEY` respectively.
+
+`opts` is an options object that is passed to each `hyperdrive.createArchive`
+call internally. These options take priority over the options passed into
+`drive()`. opts` can have the following values:
+```js
+{
+  live: false, // set this to share the archive without finalizing it
+  sparse: false, // set this to only download the pieces of the feed you are requesting / prioritizing
+  key: '<64 bit hex string>' // set this to replicate an archive
+}
+```
+
+### drive.removeArchive(location, callback(err))
 Delete a named `hyperdrive` from the `multidrive` instance. __Does not delete
-any files on disk__, only the record that's part of `multidrive`.
+any files on disk__, only the archive that's stored in `multidrive`. To delete
+an `archive` on disk, remove the path at `archive.location`.
 
 ## FAQ
-### How can I get the location of a drive?
-Each `hyperdrive` exposes a `.location` property which is the location where
+### How is multidrive different from hyperdrive?
+Hyperdrive is a stateless library intended to manage a single archive. It
+doesn't persist public / private keys, and needs to be passed an `level`
+database to save its data.
+
+Multidrive is a stateful library intended to manage multiple archives. It
+persists public / private keys and creates `level` databases on the filesystem
+to store data.
+
+### How can I get the location of an archive?
+Each `archive` exposes a `.location` property which is the location where
 the drive is currently stored.
 
 ## Installation
@@ -60,7 +116,6 @@ $ npm install multidrive
 ## See Also
 - https://github.com/karissa/hyperdrive-archive-swarm
 - https://github.com/mafintosh/hyperdrive
-- https://github.com/yoshuawuyts/centralized-multidrive
 
 ## License
 [MIT](https://tldrlegal.com/license/mit-license)
