@@ -36,14 +36,17 @@ function MultiDrive (name, cb) {
 
     function iterator (pair, done) {
       const name = pair.key
-      const directory = pair.value
+      const opts = pair.value
 
       // TODO: figure out if there's a better way to signal a database was removed
-      level(directory, function (err, db) {
-        if (err) return done(explain(err, 'multidrive: error recreating database in ' + directory))
+      level(opts.directory, {
+        valueEncoding: 'json'
+      }, function (err, db) {
+        if (err) return done(explain(err, 'multidrive: error recreating database in ' + opts.directory))
 
         const drive = hyperdrive(db)
-        drive.location = directory
+        drive.location = opts.directory
+        drive.meta = opts.meta
         self.drives[name] = drive
         done()
       })
@@ -51,20 +54,21 @@ function MultiDrive (name, cb) {
   }
 }
 
-// (str, str, fn) -> null
-MultiDrive.prototype.create = function (name, directory, cb) {
-  assert.equal(typeof name, 'string', 'multidrive.create: name should be a string')
-  assert.equal(typeof directory, 'string', 'multidrive.create: directory should be a string')
+// (opts, fn) -> null
+MultiDrive.prototype.create = function (opts, cb) {
+  assert.equal(typeof opts, 'object', 'multidrive.create: opts should be an object')
+  assert.equal(typeof opts.name, 'string', 'multidrive.create: opts.name should be a string')
+  assert.equal(typeof opts.directory, 'string', 'multidrive.create: opts.directory should be a string')
   assert.equal(typeof cb, 'function', 'multidrive.create: cb should be a function')
 
   const self = this
 
-  level(directory, function (err, db) {
+  level(opts.directory, function (err, db) {
     if (err) return cb(explain(err, 'multidrive: error creating database'))
     const drive = hyperdrive(db)
-    drive.location = directory
+    drive.location = opts.directory
 
-    self.db.put(name, directory, function (err) {
+    self.db.put(opts.name, opts, function (err) {
       if (err) return cb(err)
       cb(null, drive)
     })

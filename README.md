@@ -15,7 +15,10 @@ const manager = multidrive('my-cool-archive', function (err) {
 })
 
 const driveLocation = process.cwd()
-manager.create('cute-cats', driveLocation, (err, drive) => {
+manager.create({
+  name: 'cute-cats',
+  directory: driveLocation
+}, (err, drive) => {
   if (err) return console.error(err)
 
   // drive === [HyperDrive]
@@ -40,8 +43,9 @@ Create a new `multidrive` instance
 List all drives in the `multidrive`. `drives` is a key-value object where keys
 are names, and values are hyperdrive instances
 
-### manager.create(name, location, callback(err, drive))
-Create a new named `hyperdrive` under `location`
+### manager.create({ name, directory, meta }, callback(err, drive))
+Create a new named `hyperdrive` under `directory` with optional `meta`
+properties attached.
 
 ### manager.delete(name, callback(err))
 Delete a named `hyperdrive` from the `multidrive` instance. __Does not delete
