@@ -16,16 +16,14 @@ multidrive('my-cool-drive', function (err, drive) {
 
   drive.createArchive(process.cwd(), function (err, archive) {
     if (err) return console.error(err)
-
     // archive === [HyperDriveArchive]
-    drive.list(function (err, archives) {
-      if (err) console.error(err)
 
-      // archives === { '/usr/tiny-cat/drives': [HyperDriveArchive] }
-      Object.keys(archives).forEach(function (key) {
-        var archive = archives[key]
-        discovery(archive)
-      })
+    var archives = drive.list()
+    // archives === { '/usr/tiny-cat/drives': [HyperDriveArchive] }
+
+    Object.keys(archives).forEach(function (key) {
+      var archive = archives[key]
+      discovery(archive)
     })
   })
 })
@@ -68,9 +66,9 @@ call internally. `opts` can have the following values:
 }
 ```
 
-### drive.list(callback(err, drives))
-List all `archives` in the `multidrive`. `drives` is a key-value object where
-keys are file paths, and values are hyperdrive archives.
+### drive.list()
+List all `archives` in the `multidrive`. The returned `drives` key-value object
+lists keys as file paths and values as hyperdrive archives.
 
 ### drive.createArchive(location, [opts], callback(err, drive))
 Create a new named `hyperdrive` under `location`. To replicate an existing
