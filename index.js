@@ -113,9 +113,7 @@ MultiDrive.prototype.createArchive = function (directory, opts, cb) {
 
     opts = xtend(self.opts, opts)
     var drive = hyperdrive(db)
-    var archive = (key)
-      ? drive.createArchive(key, opts)
-      : drive.createArchive(opts)
+    var archive = drive.createArchive(key, opts)
     archive.metadata.location = directory
 
     var secretKeyPath = path.join(directory, 'SECRET_KEY')
