@@ -28,14 +28,16 @@ function createMultiDrive (location, opts, cb) {
   var db = level(location)
 
   var rs = db.createReadStream()
-  pump(rs, concat({ encoding: 'json' }, sink), (err) => {
+  pump(rs, concat({ encoding: 'json' }, sink), function (err) {
     if (err) cb(err)
   })
 
   function sink (pairs) {
     mapLimit(pairs, 1, iterator, function (err, archivesArray) {
       if (err) return cb(err)
-      var archivesMap = keyBy(archivesArray, archive => archive.metadata.directory)
+      var archivesMap = keyBy(archivesArray, function (archive) {
+        return archive.metadata.directory
+      })
       cb(null, new MultiDrive(db, archivesMap))
     })
 
