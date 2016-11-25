@@ -88,7 +88,7 @@ function MultiDrive (location, opts, cb) {
           ? xtend(self.opts, opts, { secretKey: secretKey })
           : xtend(self.opts, opts)
         var archive = drive.createArchive(key, _opts)
-        self.archives[name] = archive
+        self.archives[key.toString('hex')] = archive
         done()
       })
     }
