@@ -43,7 +43,7 @@ function createMultiDrive (location, opts, cb) {
 
     function iterator (pair, done) {
       var directory = pair.key
-      var _opts = pair.value
+      opts = xtend(opts, pair.value)
 
       var secretKeyPath = path.join(directory, 'SECRET_KEY')
       var keyPath = path.join(directory, 'KEY')
@@ -80,10 +80,8 @@ function createMultiDrive (location, opts, cb) {
       series(fns, function (err) {
         if (err) return done(err)
         var drive = hyperdrive(db)
-        var _opts = (secretKey)
-          ? xtend(self.opts, opts, { secretKey: secretKey })
-          : xtend(self.opts, opts)
-        var archive = drive.createArchive(key, _opts)
+        if (secretKey) opts.secretKey = secretKey
+        var archive = drive.createArchive(key, opts)
         archive.metadata.location = directory
         done(null, archive)
       })
@@ -113,11 +111,11 @@ MultiDrive.prototype.createArchive = function (directory, opts, cb) {
   level(directory, function (err, db) {
     if (err) return cb(explain(err, 'multidrive.createArchive: error creating database'))
 
-    var _opts = xtend(self.opts, opts)
+    opts = xtend(self.opts, opts)
     var drive = hyperdrive(db)
     var archive = (key)
-      ? drive.createArchive(key, _opts)
-      : drive.createArchive(_opts)
+      ? drive.createArchive(key, opts)
+      : drive.createArchive(opts)
     archive.metadata.location = directory
 
     var secretKeyPath = path.join(directory, 'SECRET_KEY')
