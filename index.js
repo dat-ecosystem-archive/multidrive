@@ -1,4 +1,3 @@
-var namedLevel = require('named-level-store')
 var hyperdrive = require('hyperdrive')
 var explain = require('explain-error')
 var concat = require('concat-stream')
@@ -15,21 +14,21 @@ module.exports = MultiDrive
 
 // manage a collection of hyperdrives
 // (str, obj?, fn) -> null
-function MultiDrive (name, opts, cb) {
-  if (!(this instanceof MultiDrive)) return new MultiDrive(name, opts, cb)
+function MultiDrive (location, opts, cb) {
+  if (!(this instanceof MultiDrive)) return new MultiDrive(location, opts, cb)
 
   if (!cb) {
     cb = opts
     opts = {}
   }
 
-  assert.equal(typeof name, 'string', 'multidrive: name should be a string')
+  assert.equal(typeof location, 'string', 'multidrive: location should be a string')
   assert.equal(typeof opts, 'object', 'multidrive: opts should be an object')
   assert.equal(typeof cb, 'function', 'multidrive: cb should be a function')
 
   var self = this
 
-  this.db = namedLevel(name)
+  this.db = level(location)
   this.opts = opts
   this.archives = {}
   this.queue = []
@@ -89,7 +88,7 @@ function MultiDrive (name, opts, cb) {
           ? xtend(self.opts, opts, { secretKey: secretKey })
           : xtend(self.opts, opts)
         var archive = drive.createArchive(key, _opts)
-        self.archives[name] = archive
+        self.archives[directory] = archive
         done()
       })
     }

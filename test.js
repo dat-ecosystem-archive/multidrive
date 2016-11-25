@@ -9,7 +9,7 @@ var multidrive = require('./')
 test('drive = multidrive', function (t) {
   t.test('should assert input types', function (t) {
     t.plan(3)
-    t.throws(multidrive, /name/)
+    t.throws(multidrive, /location/)
     t.throws(multidrive.bind(null, 'hi'), /function/)
     t.throws(multidrive.bind(null, 'hi', 'hi', 'hi'), /object/)
   })
@@ -18,29 +18,30 @@ test('drive = multidrive', function (t) {
 test('drive.createArchive', function (t) {
   t.test('should assert input types', function (t) {
     t.plan(3)
-    var name = uuid()
-    multidrive(name, function (err, drive) {
+    var location = path.join('/tmp', uuid())
+
+    multidrive(location, function (err, drive) {
       t.ifError(err, 'no err')
       t.throws(drive.createArchive, /directory/)
       t.throws(drive.createArchive.bind(drive, '/foo/bar', 'nope'), /function/)
-      rimraf.sync(path.join(process.env.HOME, '.level', name))
+      rimraf.sync(location)
     })
   })
 
   t.test('should create an archive', function (t) {
     t.plan(2)
-    var name = uuid()
+    var location = path.join('/tmp', uuid())
 
     var opts = {
       file: function (name, dir) { return raf(path.join(dir, name)) }
     }
-    multidrive(name, opts, function (err, drive) {
+    multidrive(location, opts, function (err, drive) {
       t.ifError(err, 'no err')
 
       var archiveDir = path.join('/tmp', uuid())
       drive.createArchive(archiveDir, function (err, drive) {
         t.ifError(err, 'no err')
-        rimraf.sync(path.join(process.env.HOME, '.level', name))
+        rimraf.sync(location)
         rimraf.sync(archiveDir)
       })
     })
