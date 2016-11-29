@@ -29,7 +29,7 @@ test('drive.createArchive', function (t) {
   })
 
   t.test('should create an archive', function (t) {
-    t.plan(2)
+    t.plan(3)
     var location = path.join('/tmp', uuid())
 
     var opts = {
@@ -39,8 +39,9 @@ test('drive.createArchive', function (t) {
       t.ifError(err, 'no err')
 
       var archiveDir = path.join('/tmp', uuid())
-      drive.createArchive(archiveDir, function (err, drive) {
+      drive.createArchive(archiveDir, function (err, archive) {
         t.ifError(err, 'no err')
+        t.ok(archive)
         rimraf.sync(location)
         rimraf.sync(archiveDir)
       })
@@ -49,6 +50,8 @@ test('drive.createArchive', function (t) {
 })
 
 test('drive.removeDrive', function (t) {
+  t.fail()
+  t.end()
 })
 
 test('drive.list', function (t) {
