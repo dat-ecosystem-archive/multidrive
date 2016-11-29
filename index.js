@@ -25,7 +25,9 @@ function createMultiDrive (location, opts, cb) {
   assert.equal(typeof opts, 'object', 'multidrive: opts should be an object')
   assert.equal(typeof cb, 'function', 'multidrive: cb should be a function')
 
-  var db = level(location)
+  var db = level(location, {
+    valueEncoding: 'json'
+  })
 
   var rs = db.createReadStream()
   pump(rs, concat({ encoding: 'json' }, sink), function (err) {

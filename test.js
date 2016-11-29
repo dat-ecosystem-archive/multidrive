@@ -77,7 +77,7 @@ test('drive.list', function (t) {
   })
 
   t.test('should list persisted archives', function (t) {
-    t.plan(6)
+    t.plan(7)
     var location = path.join('/tmp', uuid())
 
     multidrive(location, function (err, drive) {
@@ -86,6 +86,7 @@ test('drive.list', function (t) {
       var archiveDir = path.join('/tmp', uuid())
       drive.createArchive(archiveDir, function (err, archive) {
         t.ifError(err, 'no err')
+        t.ok(archive.owner, 'owner after creation')
 
         drive.close(function (err) {
           t.ifError(err, 'no err')
@@ -94,8 +95,9 @@ test('drive.list', function (t) {
             t.ifError(err, 'no err')
 
             var archives = drive.list()
-            t.ok(archives)
-            t.ok(archives[archive.metadata.location])
+            t.ok(archives, 'archives loaded')
+            t.ok(archives[archive.metadata.location], 'archive exists')
+            t.ok(archives[archive.metadata.location].owner, 'still owner')
 
             rimraf.sync(location)
             rimraf.sync(archiveDir)
