@@ -55,4 +55,24 @@ test('drive.removeDrive', function (t) {
 })
 
 test('drive.list', function (t) {
+  t.test('should list archives', function (t) {
+    t.plan(4)
+    var location = path.join('/tmp', uuid())
+
+    multidrive(location, function (err, drive) {
+      t.ifError(err, 'no err')
+
+      var archiveDir = path.join('/tmp', uuid())
+      drive.createArchive(archiveDir, function (err, archive) {
+        t.ifError(err, 'no err')
+
+        var archives = drive.list()
+        t.ok(archives)
+        t.equal(archives[archive.metadata.location], archive)
+
+        rimraf.sync(location)
+        rimraf.sync(archiveDir)
+      })
+    })
+  })
 })
