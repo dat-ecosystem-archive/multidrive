@@ -36,7 +36,7 @@ function createMultiDrive (location, opts, cb) {
     mapLimit(pairs, 1, iterator, function (err, archivesArray) {
       if (err) return cb(err)
       var archivesMap = keyBy(archivesArray, function (archive) {
-        return archive.metadata.directory
+        return archive.metadata.location
       })
       cb(null, new MultiDrive(db, archivesMap))
     })
@@ -149,6 +149,7 @@ MultiDrive.prototype.createArchive = function (directory, opts, cb) {
 
     series(fns, function (err, values) {
       if (err) return cb(err)
+      self.archives[directory] = archive
       cb(null, archive)
     })
   })
