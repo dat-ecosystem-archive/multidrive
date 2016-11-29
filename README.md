@@ -87,6 +87,9 @@ call internally. These options take priority over the options passed into
 }
 ```
 
+### drive.close(callback(err))
+Close the underlying leveldb.
+
 ### drive.removeArchive(location, callback(err))
 Delete a named `hyperdrive` from the `multidrive` instance. __Does not delete
 any files on disk__, only the archive that's stored in `multidrive`. To delete

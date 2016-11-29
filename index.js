@@ -83,6 +83,7 @@ function createMultiDrive (location, opts, cb) {
         if (secretKey) opts.secretKey = secretKey
         var archive = drive.createArchive(key, opts)
         archive.metadata.location = directory
+        archive.metadata.db = db
         done(null, archive)
       })
     }
@@ -115,6 +116,7 @@ MultiDrive.prototype.createArchive = function (directory, opts, cb) {
     var drive = hyperdrive(db)
     var archive = drive.createArchive(key, opts)
     archive.metadata.location = directory
+    archive.metadata.db = db
 
     var secretKeyPath = path.join(directory, 'SECRET_KEY')
     var keyPath = path.join(directory, 'KEY')
@@ -166,4 +168,18 @@ MultiDrive.prototype.removeArchive = function (directory, cb) {
 // () -> object
 MultiDrive.prototype.list = function () {
   return this.archives
+}
+
+// (fn) -> null
+MultiDrive.prototype.close = function (cb) {
+  var self = this
+  var fns = Object.keys(this.archives).map(function (key) {
+    return function (done) {
+      self.archives[key].metadata.db.close(done)
+    }
+  })
+  series(fns, function (err) {
+    if (err) return cb(err)
+    self.db.close(cb)
+  })
 }
