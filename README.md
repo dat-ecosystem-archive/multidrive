@@ -1,56 +1,64 @@
 # multidrive [![stability][0]][1]
-[![npm version][2]][3] [![build status][4]][5]
+[![npm version][2]][3] [![build status][4]][5] [![Test coverage][6]][7]
 [![downloads][8]][9] [![js-standard-style][10]][11]
 
-Manage multiple hyperdrives. Stores `hyperdrive` databases in a location that's
-passed in on creation.
+Manage multiple hyperdrive archives located anywhere on the filesystem.
 
 ## Usage
 ```js
-const discovery = require('hyperdiscovery')
-const multidrive = require('multidrive')
+var hyperdrive = require('hyperdrive')
+var multidrive = require('multidrive')
+var level = require('level')
 
-const manager = multidrive('my-cool-archive', function (err) {
-  if (err) console.error(err)
-})
+var db = level('/tmp/archives')
+multidrive(db, createArchive, closeArchive, function (err, drive) {
+  if (err) throw err
 
-const driveLocation = process.cwd()
-manager.create('cute-cats', driveLocation, (err, drive) => {
-  if (err) return console.error(err)
+  var data = { key: '<64-bit-hex>' }
+  drive.create(data, function (err, archive) {
+    if (err) throw err
 
-  // drive === [HyperDrive]
-  manager.list((err, drives) => {
-    if (err) console.error(err)
+    var archives = drive.list()
+    console.log(archives)
 
-    // drives === { 'cute-cats': [HyperDrive] }
-    Object.keys(drives).forEach((key) => {
-      const drive = drives[key]
-      const archive = drive.createArchive()
-      discovery(archive)
+    drive.close(archive.key, function (err) {
+      if (err) throw err
+      console.log('archive deleted')
     })
   })
 })
+
+function createArchive (data, done) {
+  var db = level('/tmp/' + 'multidrive-' + data.key)
+  var drive = hyperdrive(db)
+  var archive = drive.createArchive(data.key)
+  done(null, archive)
+}
+
+function closeArchive (archive, done) {
+  archive.close()
+  done()
+}
 ```
 
 ## API
-### manager = multidrive(name, callback)
-Create a new `multidrive` instance
+### multidrive(db, createArchive, closeArchive, callback(err, drive))
+Create a new multidrive instance. `db` should be a valid `level` instance.
+`createArchive` is the function used to create new Hyperdrive archives.
+`callback` is called after initialization. `closeArchive` is called when
+`drive.remove()` is called.
 
-### manager.list(callback(err, drives))
-List all drives in the `multidrive`. `drives` is a key-value object where keys
-are names, and values are hyperdrive instances
+`createArchive` has an api of `createArchive(data, done)` where `data` is passed in
+by `drive.create()` and `done(err, archive)` expects a valid archive.
 
-### manager.create(name, location, callback(err, drive))
-Create a new named `hyperdrive` under `location`
+### archives = drive.list()
+List all `archives` in the `multidrive`.
 
-### manager.delete(name, callback(err))
-Delete a named `hyperdrive` from the `multidrive` instance. __Does not delete
-any files on disk__, only the record that's part of `multidrive`.
+### drive.create(data, callback(err, drive))
+Create a new Hyperdrive archive. `data` is passed into `createArchive`.
 
-## FAQ
-### How can I get the location of a drive?
-Each `hyperdrive` exposes a `.location` property which is the location where
-the drive is currently stored.
+### drive.close(key, callback(err))
+Remove an archive by its public key. Calls `closeArchive()`
 
 ## Installation
 ```sh
@@ -58,9 +66,9 @@ $ npm install multidrive
 ```
 
 ## See Also
-- https://github.com/karissa/hyperdrive-archive-swarm
+- https://github.com/karissa/hyperdiscovery
 - https://github.com/mafintosh/hyperdrive
-- https://github.com/yoshuawuyts/centralized-multidrive
+- https://github.com/Level/level
 
 ## License
 [MIT](https://tldrlegal.com/license/mit-license)
