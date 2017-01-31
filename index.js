@@ -1,187 +1,67 @@
-var hyperdrive = require('hyperdrive')
-var explain = require('explain-error')
 var concat = require('concat-stream')
-var keyBy = require('lodash.keyby')
 var mapLimit = require('map-limit')
-var series = require('run-series')
 var assert = require('assert')
-var level = require('level')
-var xtend = require('xtend')
-var path = require('path')
 var pump = require('pump')
-var fs = require('fs')
 
-module.exports = createMultiDrive
+module.exports = multidrive
 
-// manage a collection of hyperdrives
-// (str, obj?, fn) -> null
-function createMultiDrive (location, opts, cb) {
-  if (!cb) {
-    cb = opts
-    opts = {}
+function multidrive (db, createArchive, closeArchive, cb) {
+  assert.equal(typeof db, 'object', 'multidrive: db should be type object')
+  assert.equal(typeof createArchive, 'function', 'multidrive: createArchive should be type function')
+  assert.equal(typeof closeArchive, 'function', 'multidrive: closeArchive should be type function')
+  assert.equal(typeof cb, 'function', 'multidrive: cb should be type function')
+
+  var archives = []
+  var drive = {
+    list: list,
+    create: create,
+    close: close
   }
-
-  assert.equal(typeof location, 'string', 'multidrive: location should be a string')
-  assert.equal(typeof opts, 'object', 'multidrive: opts should be an object')
-  assert.equal(typeof cb, 'function', 'multidrive: cb should be a function')
-
-  var db = level(location, {
-    valueEncoding: 'json'
-  })
 
   var rs = db.createReadStream()
-  pump(rs, concat({ encoding: 'json' }, sink), function (err) {
-    if (err) cb(err)
-  })
+  var ws = concat({ encoding: 'json' }, sink)
+  pump(rs, ws)
 
-  function sink (pairs) {
-    mapLimit(pairs, 1, iterator, function (err, archivesArray) {
+  function sink (data) {
+    mapLimit(data, 1, createArchive, function (err, _archives) {
       if (err) return cb(err)
-      var archivesMap = keyBy(archivesArray, function (archive) {
-        return archive.metadata.location
-      })
-      cb(null, new MultiDrive(db, archivesMap))
+      archives = _archives
+      cb(null, drive)
     })
-
-    function iterator (pair, done) {
-      var directory = pair.key
-      opts = xtend(opts, pair.value)
-
-      var secretKeyPath = path.join(directory, 'SECRET_KEY')
-      var keyPath = path.join(directory, 'KEY')
-      var secretKey = null
-      var key = null
-      var db = null
-      var fns = []
-
-      fns.push(function (done) {
-        // TODO: figure out if there's a better way to signal a database was removed
-        level(directory, function (err, _db) {
-          if (err) return done(explain(err, 'multidrive: error recreating database in ' + directory))
-          db = _db
-          done()
-        })
-      })
-
-      fns.push(function (done) {
-        fs.readFile(secretKeyPath, function (err, _key) {
-          if (err) return done()
-          secretKey = _key
-          done()
-        })
-      })
-
-      fns.push(function (done) {
-        fs.readFile(keyPath, function (err, _key) {
-          if (err) return done()
-          key = _key
-          done()
-        })
-      })
-
-      series(fns, function (err) {
-        if (err) return done(err)
-        var drive = hyperdrive(db)
-        if (secretKey) opts.secretKey = secretKey
-        var archive = drive.createArchive(key, opts)
-        archive.metadata.location = directory
-        archive.metadata.db = db
-        done(null, archive)
-      })
-    }
-  }
-}
-
-function MultiDrive (db, archives) {
-  this.db = db
-  this.archives = archives
-}
-
-// (str, obj?, fn) -> null
-MultiDrive.prototype.createArchive = function (directory, opts, cb) {
-  if (!cb) {
-    cb = opts
-    opts = {}
   }
 
-  assert.equal(typeof directory, 'string', 'multidrive.createArchive: directory should be a string')
-  assert.equal(typeof cb, 'function', 'multidrive.createArchive: cb should be a function')
-  assert.ok(!opts.file, 'multidrive.createArchive: passing in opts.file can cause critical errors, opts.file can only be passed into the multidrive constructor to ensure consistency')
+  function list () {
+    return archives
+  }
 
-  var key = opts.key
-  var self = this
-
-  level(directory, function (err, db) {
-    if (err) return cb(explain(err, 'multidrive.createArchive: error creating database'))
-
-    opts = xtend(self.opts, opts)
-    var drive = hyperdrive(db)
-    var archive = drive.createArchive(key, opts)
-    archive.metadata.location = directory
-    archive.metadata.db = db
-
-    var secretKeyPath = path.join(directory, 'SECRET_KEY')
-    var keyPath = path.join(directory, 'KEY')
-    var fns = []
-
-    fns.push(function (done) {
-      fs.writeFile(keyPath, archive.metadata.key, function (err) {
-        if (err) return done(explain(err, 'multidrive: error writing key to ' + keyPath))
-        done()
-      })
-    })
-
-    fns.push(function (done) {
-      var data = {
-        sparse: opts.sparse,
-        live: opts.live
-      }
-      self.db.put(directory, data, function (err) {
-        if (err) return done(explain(err, 'multidrive.createArchive: error saving directory to database'))
-        done()
-      })
-    })
-
-    if (archive.metadata.secretKey) {
-      fns.push(function (done) {
-        fs.writeFile(secretKeyPath, archive.metadata.secretKey, function (err) {
-          if (err) return done(explain(err, 'multidrive.createArchive: error writing secretKey to ' + secretKeyPath))
-          done()
-        })
-      })
-    }
-
-    series(fns, function (err, values) {
+  function create (data, cb) {
+    createArchive(data, function (err, archive) {
       if (err) return cb(err)
-      self.archives[directory] = archive
-      cb(null, archive)
+      var key = archive.key
+      var _data = JSON.stringify(data)
+      db.put(key, _data, function (err) {
+        if (err) return cb(err)
+        archives.push(archive)
+        cb(null, archive)
+      })
     })
-  })
-}
+  }
 
-// remove an instance from the registry, does not remove the directory itself
-// (str, fn) -> null
-MultiDrive.prototype.removeArchive = function (directory, cb) {
-  assert.equal(typeof directory, 'string', 'multidrive.delete: directory should be a string')
-  assert.equal(typeof cb, 'function', 'multidrive.delete: cb should be a function')
-  this.db.del(directory, cb)
-}
-
-// () -> object
-MultiDrive.prototype.list = function () {
-  return this.archives
-}
-
-// (fn) -> null
-MultiDrive.prototype.close = function (cb) {
-  var self = this
-  var fns = Object.keys(this.archives).map(function (key) {
-    return function (done) {
-      self.archives[key].metadata.db.close(done)
-    }
-  })
-  series(fns, function (err) {
-    if (err) return cb(err)
-    self.db.close(cb)
-  })
+  function close (key, cb) {
+    var i = 0
+    var archive = archives.find(function (archive, j) {
+      if (archive.key !== key) return
+      i = j
+      return true
+    })
+    if (!archive) return cb(new Error('could not find archive ' + key))
+    closeArchive(archive, function (err) {
+      if (err) return cb(err)
+      db.del(key, function (err) {
+        if (err) return cb(err)
+        archives.splice(i, 1)
+        cb(null, archive)
+      })
+    })
+  }
 }
