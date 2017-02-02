@@ -16,11 +16,10 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "concat-stream": "^1.5.2",
-    "map-limit": "0.0.1",
-    "pump": "^1.0.1"
+    "map-limit": "0.0.1"
   },
   "devDependencies": {
+    "toiletdb": "^1.0.0",
     "dependency-check": "^2.6.0",
     "hyperdrive": "^7.13.1",
     "istanbul": "^0.4.5",

@@ -1,6 +1,16 @@
 var hyperdrive = require('hyperdrive')
+var toilet = require('toiletdb')
 var memdb = require('memdb')
 var test = require('tape')
+var fs = require('fs')
+
+function flushToilet () {
+  try {
+    fs.unlinkSync('state.json')
+  } catch (e) {}
+}
+
+flushToilet()
 
 var noop = function () {}
 var multidrive = require('./')
@@ -18,8 +28,8 @@ test('drive.create', function (t) {
   t.test('should create an archive', function (t) {
     t.plan(5)
 
-    var db = memdb()
-    multidrive(db, createArchive, noop, function (err, drive) {
+    var store = toilet('state.json')
+    multidrive(store, createArchive, noop, function (err, drive) {
       t.ifError(err, 'no err')
       t.equal(typeof drive, 'object', 'drive was returned')
       drive.create(null, function (err, archive) {
@@ -39,14 +49,15 @@ test('drive.create', function (t) {
 
   t.test('should recreate archives', function (t) {
     t.plan(4)
-    var db = memdb()
-    multidrive(db, createArchive, noop, function (err, drive) {
+    flushToilet()
+    var store = toilet('state.json')
+    multidrive(store, createArchive, noop, function (err, drive) {
       t.ifError(err, 'no err')
 
       drive.create(null, function (err, archive) {
         t.ifError(err, 'no err')
 
-        multidrive(db, createArchive, noop, function (err, drive) {
+        multidrive(store, createArchive, noop, function (err, drive) {
           t.ifError(err, 'no err')
           var drives = drive.list()
           t.equal(drives.length, 1, 'one drive on init')
@@ -66,9 +77,10 @@ test('drive.create', function (t) {
 test('drive.list', function (t) {
   t.test('should list archives', function (t) {
     t.plan(3)
+    flushToilet()
 
-    var db = memdb()
-    multidrive(db, createArchive, noop, function (err, drive) {
+    var store = toilet('state.json')
+    multidrive(store, createArchive, noop, function (err, drive) {
       t.ifError(err, 'no err')
       drive.create(null, function (err, archive) {
         t.ifError(err, 'no err')
@@ -89,9 +101,10 @@ test('drive.list', function (t) {
 test('drive.close', function (t) {
   t.test('close an archive', function () {
     t.plan(5)
+    flushToilet()
 
-    var db = memdb()
-    multidrive(db, createArchive, closeArchive, function (err, drive) {
+    var store = toilet('state.json')
+    multidrive(store, createArchive, closeArchive, function (err, drive) {
       t.ifError(err, 'no err')
       drive.create(null, function (err, archive) {
         t.ifError(err, 'no err')
@@ -115,4 +128,10 @@ test('drive.close', function (t) {
       done()
     }
   })
+})
+
+test('cleanup toilet', function (t) {
+  flushToilet()
+  t.ok(true, 'flushed toilet')
+  process.nextTick(t.end)
 })

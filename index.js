@@ -1,12 +1,10 @@
-var concat = require('concat-stream')
 var mapLimit = require('map-limit')
 var assert = require('assert')
-var pump = require('pump')
 
 module.exports = multidrive
 
-function multidrive (db, createArchive, closeArchive, cb) {
-  assert.equal(typeof db, 'object', 'multidrive: db should be type object')
+function multidrive (store, createArchive, closeArchive, cb) {
+  assert.equal(typeof store, 'object', 'multidrive: store should be type object')
   assert.equal(typeof createArchive, 'function', 'multidrive: createArchive should be type function')
   assert.equal(typeof closeArchive, 'function', 'multidrive: closeArchive should be type function')
   assert.equal(typeof cb, 'function', 'multidrive: cb should be type function')
@@ -18,12 +16,14 @@ function multidrive (db, createArchive, closeArchive, cb) {
     close: close
   }
 
-  var rs = db.createReadStream()
-  var ws = concat({ encoding: 'json' }, sink)
-  pump(rs, ws)
+  store.read(sink)
 
-  function sink (data) {
-    mapLimit(data, 1, createArchive, function (err, _archives) {
+  function sink (err, data) {
+    if (err) return cb(err)
+    var values = Object.keys(data).map(function (key) {
+      return data[key]
+    })
+    mapLimit(values, 1, createArchive, function (err, _archives) {
       if (err) return cb(err)
       archives = _archives
       cb(null, drive)
@@ -38,8 +38,9 @@ function multidrive (db, createArchive, closeArchive, cb) {
     createArchive(data, function (err, archive) {
       if (err) return cb(err)
       var key = archive.key
-      var _data = JSON.stringify(data)
-      db.put(key, _data, function (err) {
+      var _data
+      if (data) _data = JSON.stringify(data)
+      store.write(key, _data, function (err) {
         if (err) return cb(err)
         archives.push(archive)
         cb(null, archive)
@@ -57,7 +58,7 @@ function multidrive (db, createArchive, closeArchive, cb) {
     if (!archive) return cb(new Error('could not find archive ' + key))
     closeArchive(archive, function (err) {
       if (err) return cb(err)
-      db.del(key, function (err) {
+      store.delete(key, function (err) {
         if (err) return cb(err)
         archives.splice(i, 1)
         cb(null, archive)
