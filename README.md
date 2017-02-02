@@ -8,7 +8,6 @@ Manage multiple hyperdrive archives located anywhere on the filesystem.
 ```js
 var hyperdrive = require('hyperdrive')
 var multidrive = require('multidrive')
-var level = require('level')
 var toilet = require('toiletdb')
 
 var store = toilet('./data.json')
