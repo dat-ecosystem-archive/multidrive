@@ -9,9 +9,10 @@ Manage multiple hyperdrive archives located anywhere on the filesystem.
 var hyperdrive = require('hyperdrive')
 var multidrive = require('multidrive')
 var level = require('level')
+var toilet = require('toiletdb')
 
-var db = level('/tmp/archives')
-multidrive(db, createArchive, closeArchive, function (err, drive) {
+var store = toilet('./data.json')
+multidrive(store, createArchive, closeArchive, function (err, drive) {
   if (err) throw err
 
   var data = { key: '<64-bit-hex>' }
@@ -42,8 +43,8 @@ function closeArchive (archive, done) {
 ```
 
 ## API
-### multidrive(db, createArchive, closeArchive, callback(err, drive))
-Create a new multidrive instance. `db` should be a valid `level` instance.
+### multidrive(store, createArchive, closeArchive, callback(err, drive))
+Create a new multidrive instance. `db` should be a valid `toiletdb` instance.
 `createArchive` is the function used to create new Hyperdrive archives.
 `callback` is called after initialization. `closeArchive` is called when
 `drive.remove()` is called.
@@ -69,6 +70,7 @@ $ npm install multidrive
 - https://github.com/karissa/hyperdiscovery
 - https://github.com/mafintosh/hyperdrive
 - https://github.com/Level/level
+- https://github.com/maxogden/toiletdb
 
 ## License
 [MIT](https://tldrlegal.com/license/mit-license)
