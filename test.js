@@ -54,10 +54,11 @@ test('drive.create', function (t) {
     multidrive(store, createArchive, noop, function (err, drive) {
       t.ifError(err, 'no err')
 
-      drive.create(null, function (err, archive) {
+      drive.create({ hello: 'world' }, function (err, archive) {
         t.ifError(err, 'no err')
 
-        multidrive(store, createArchive, noop, function (err, drive) {
+        var newStore = toilet('state.json')
+        multidrive(newStore, createArchive, noop, function (err, drive) {
           t.ifError(err, 'no err')
           var drives = drive.list()
           t.equal(drives.length, 1, 'one drive on init')
