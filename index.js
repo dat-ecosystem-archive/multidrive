@@ -21,8 +21,9 @@ function multidrive (store, createArchive, closeArchive, cb) {
   function sink (err, data) {
     if (err) return cb(err)
     var values = Object.keys(data).map(function (key) {
-      return data[key]
+      return JSON.parse(data[key])
     })
+
     mapLimit(values, 1, createArchive, function (err, _archives) {
       if (err) return cb(err)
       archives = _archives
@@ -49,9 +50,10 @@ function multidrive (store, createArchive, closeArchive, cb) {
   }
 
   function close (key, cb) {
+    if (Buffer.isBuffer(key)) key = key.toString('hex')
     var i = 0
     var archive = archives.find(function (archive, j) {
-      if (archive.key !== key) return
+      if (archive.key.toString('hex') !== key) return
       i = j
       return true
     })
