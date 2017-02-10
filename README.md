@@ -78,10 +78,10 @@ $ npm install multidrive
 [1]: https://nodejs.org/api/documentation.html#documentation_stability_index
 [2]: https://img.shields.io/npm/v/multidrive.svg?style=flat-square
 [3]: https://npmjs.org/package/multidrive
-[4]: https://img.shields.io/travis/yoshuawuyts/multidrive/master.svg?style=flat-square
-[5]: https://travis-ci.org/yoshuawuyts/multidrive
-[6]: https://img.shields.io/codecov/c/github/yoshuawuyts/multidrive/master.svg?style=flat-square
-[7]: https://codecov.io/github/yoshuawuyts/multidrive
+[4]: https://img.shields.io/travis/datproject/multidrive/master.svg?style=flat-square
+[5]: https://travis-ci.org/datproject/multidrive
+[6]: https://img.shields.io/codecov/c/github/datproject/multidrive/master.svg?style=flat-square
+[7]: https://codecov.io/github/datproject/multidrive
 [8]: http://img.shields.io/npm/dm/multidrive.svg?style=flat-square
 [9]: https://npmjs.org/package/multidrive
 [10]: https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square
