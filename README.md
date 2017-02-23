@@ -56,6 +56,7 @@ List all `archives` in the `multidrive`.
 
 ### drive.create(data, callback(err, drive))
 Create a new Hyperdrive archive. `data` is passed into `createArchive`.
+If an archive with the same key already exists, returns that instead.
 
 ### drive.close(key, callback(err))
 Remove an archive by its public key. Calls `closeArchive()`

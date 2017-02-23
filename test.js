@@ -73,6 +73,31 @@ test('drive.create', function (t) {
       done(null, archive)
     }
   })
+
+  t.test('should noop on duplicates', function (t) {
+    t.plan(4)
+    flushToilet()
+    var store = toilet('state.json')
+    var db = memdb()
+    var drive = hyperdrive(db)
+    multidrive(store, createArchive, noop, function (err, drive) {
+      t.ifError(err, 'no err')
+
+      drive.create({ hello: 'world' }, function (err, archive) {
+        t.ifError(err, 'no err')
+
+        drive.create({ key: archive.key }, function (err, _archive) {
+          t.ifError(err, 'no err')
+          t.equal(_archive, archive)
+        })
+      })
+    })
+
+    function createArchive (data, done) {
+      var archive = drive.createArchive({ key: data.key })
+      done(null, archive)
+    }
+  })
 })
 
 test('drive.list', function (t) {
