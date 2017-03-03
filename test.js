@@ -75,7 +75,7 @@ test('drive.create', function (t) {
   })
 
   t.test('should noop on duplicates', function (t) {
-    t.plan(4)
+    t.plan(5)
     flushToilet()
     var store = toilet('state.json')
     var db = memdb()
@@ -86,9 +86,10 @@ test('drive.create', function (t) {
       drive.create({ hello: 'world' }, function (err, archive) {
         t.ifError(err, 'no err')
 
-        drive.create({ key: archive.key }, function (err, _archive) {
+        drive.create({ key: archive.key }, function (err, _archive, duplicate) {
           t.ifError(err, 'no err')
           t.equal(_archive, archive)
+          t.equal(duplicate, true)
         })
       })
     })
