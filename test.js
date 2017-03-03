@@ -156,6 +156,123 @@ test('drive.close', function (t) {
   })
 })
 
+test('drive.getMeta', function (t) {
+  t.test('get empty meta', function (t) {
+    t.plan(3)
+    flushToilet()
+
+    var store = toilet('state.json')
+    multidrive(store, createArchive, closeArchive, function (err, drive) {
+      t.ifError(err, 'no err')
+      drive.create(null, function (err, archive) {
+        t.ifError(err, 'no err')
+        var meta = drive.getMeta(archive.key)
+        t.deepEqual(meta, {})
+      })
+    })
+
+    function createArchive (data, done) {
+      var db = memdb()
+      var drive = hyperdrive(db)
+      var archive = drive.createArchive()
+      done(null, archive)
+    }
+
+    function closeArchive (archive, done) {
+      archive.close()
+      done()
+    }
+  })
+
+  t.test('get meta', function (t) {
+    t.plan(3)
+    flushToilet()
+
+    var store = toilet('state.json')
+    multidrive(store, createArchive, closeArchive, function (err, drive) {
+      t.ifError(err, 'no err')
+      drive.create(null, function (err, archive) {
+        t.ifError(err, 'no err')
+        var meta = drive.getMeta(archive.key)
+        t.deepEqual(meta, { foo: 'bar' })
+      })
+    })
+
+    function createArchive (data, done) {
+      var db = memdb()
+      var drive = hyperdrive(db)
+      var archive = drive.createArchive()
+      archive.meta = { foo: 'bar' }
+      done(null, archive)
+    }
+
+    function closeArchive (archive, done) {
+      archive.close()
+      done()
+    }
+  })
+})
+
+test('drive.setMeta', function (t) {
+  t.test('create meta', function (t) {
+    t.plan(4)
+    flushToilet()
+
+    var store = toilet('state.json')
+    multidrive(store, createArchive, closeArchive, function (err, drive) {
+      t.ifError(err, 'no err')
+      drive.create(null, function (err, archive) {
+        t.ifError(err, 'no err')
+        drive.setMeta(archive.key, { foo: 'bar' }, function (err) {
+          t.ifError(err, 'no error')
+          var meta = drive.getMeta(archive.key)
+          t.deepEqual(meta, { foo: 'bar' })
+        })
+      })
+    })
+
+    function createArchive (data, done) {
+      var db = memdb()
+      var drive = hyperdrive(db)
+      var archive = drive.createArchive()
+      done(null, archive)
+    }
+
+    function closeArchive (archive, done) {
+      archive.close()
+      done()
+    }
+  })
+
+  t.test('update meta', function (t) {
+    t.plan(3)
+    flushToilet()
+
+    var store = toilet('state.json')
+    multidrive(store, createArchive, closeArchive, function (err, drive) {
+      t.ifError(err, 'no err')
+      drive.create(null, function (err, archive) {
+        t.ifError(err, 'no err')
+        var meta = drive.getMeta(archive.key)
+        t.deepEqual(meta, { foo: 'bar' })
+      })
+    })
+
+    function createArchive (data, done) {
+      var db = memdb()
+      var drive = hyperdrive(db)
+      var archive = drive.createArchive()
+      archive.meta = { foo: 'bar' }
+      done(null, archive)
+    }
+
+    function closeArchive (archive, done) {
+      archive.close()
+      done()
+    }
+  })
+})
+
 test('cleanup toilet', function (t) {
   flushToilet()
   t.ok(true, 'flushed toilet')
