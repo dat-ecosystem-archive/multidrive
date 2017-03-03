@@ -3,14 +3,21 @@ var assert = require('assert')
 
 module.exports = multidrive
 
-function multidrive (store, createArchive, closeArchive, cb) {
+function multidrive (store, _createArchive, closeArchive, cb) {
   assert.equal(typeof store, 'object', 'multidrive: store should be type object')
-  assert.equal(typeof createArchive, 'function', 'multidrive: createArchive should be type function')
+  assert.equal(typeof _createArchive, 'function', 'multidrive: createArchive should be type function')
   assert.equal(typeof closeArchive, 'function', 'multidrive: closeArchive should be type function')
   assert.equal(typeof cb, 'function', 'multidrive: cb should be type function')
 
+  function createArchive (data, cb) {
+    _createArchive(data, function (err, archive) {
+      if (err) return cb(err)
+      archive._data = data || {}
+      cb(null, archive)
+    })
+  }
+
   var archives = []
-  var raw = {}
   var drive = {
     list: list,
     create: create,
@@ -23,11 +30,8 @@ function multidrive (store, createArchive, closeArchive, cb) {
 
   function sink (err, data) {
     if (err) return cb(err)
-    var values = []
-    Object.keys(data).forEach(function (key) {
-      var parsed = JSON.parse(data[key])
-      raw[key] = parsed
-      values.push(parsed)
+    var values = Object.keys(data).map(function (key) {
+      return JSON.parse(data[key])
     })
 
     mapLimit(values, 1, createArchive, function (err, _archives) {
@@ -56,7 +60,6 @@ function multidrive (store, createArchive, closeArchive, cb) {
       store.write(key, _data, function (err) {
         if (err) return cb(err)
         archives.push(archive)
-        raw[key.toString('hex')] = data || {}
         cb(null, archive)
       })
     })
@@ -88,8 +91,8 @@ function multidrive (store, createArchive, closeArchive, cb) {
     })
     if (!archive) return cb(new Error('could not find archive ' + key))
     archive.meta = meta
-    raw[key].meta = meta
-    store.write(archive.key, JSON.stringify(raw[key]), cb)
+    archive._data.meta = meta
+    store.write(archive.key, JSON.stringify(archive._data), cb)
   }
 
   function getMeta (key) {
