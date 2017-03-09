@@ -43,7 +43,8 @@ function multidrive (store, createArchive, closeArchive, cb) {
       var duplicates = archives.filter(function (_archive) {
         return _archive.key === key
       })
-      if (duplicates.length) return cb(null, duplicates[0])
+      var duplicate = duplicates[0]
+      if (duplicate) return cb(null, duplicate, Boolean(duplicate))
 
       var _data
       if (data) _data = JSON.stringify(data)
