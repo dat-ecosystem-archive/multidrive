@@ -123,6 +123,35 @@ test('drive.list', function (t) {
       done(null, archive)
     }
   })
+
+  t.test('should not fail on initial archive creation errors', function (t) {
+    t.plan(6)
+    flushToilet()
+
+    var store = toilet('state.json')
+    var createArchive = function (data, done) {
+      var db = memdb()
+      var drive = hyperdrive(db)
+      var archive = drive.createArchive()
+      done(null, archive)
+    }
+    multidrive(store, createArchive, noop, function (err, drive) {
+      t.ifError(err, 'no err')
+      drive.create({ some: 'data' }, function (err, archive) {
+        t.ifError(err, 'no err')
+        var createArchive = function (data, done) {
+          done(Error('not today'))
+        }
+        multidrive(store, createArchive, noop, function (err, drive) {
+          t.ifError(err, 'no err')
+          var drives = drive.list()
+          t.equal(drives.length, 1, 'one drive')
+          t.ok(drives[0] instanceof Error)
+          t.deepEqual(drives[0].data, { some: 'data' })
+        })
+      })
+    })
+  })
 })
 
 test('drive.close', function (t) {
