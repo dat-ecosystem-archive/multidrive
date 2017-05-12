@@ -41,6 +41,21 @@ function closeArchive (archive, done) {
 }
 ```
 
+## Error handling
+If there is an error initializing a drive, instead of the whole process failing, an error object with attached `.data` property will be pushed into the list of archives instead. That means when consuming multidrive.list(), you should check for errors:
+
+```js
+var archives = multidrive.list()
+archives.forEach(function (archive) {
+  if (archive instanceof Error) {
+    var err = archive
+    console.log('failed to initialize archive with %j: %s', err.data, err.message)
+  }
+})
+```
+
+This way you can decide for yourself whether an individual initialization failure should cause the whole process to fail or not.
+
 ## API
 ### multidrive(store, createArchive, closeArchive, callback(err, drive))
 Create a new multidrive instance. `db` should be a valid `toiletdb` instance.
