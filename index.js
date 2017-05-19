@@ -59,7 +59,9 @@ function multidrive (store, createArchive, closeArchive, cb) {
       debug('archive created key=%s', hexKey)
 
       var duplicates = archives.filter(function (_archive) {
-        return _archive.key === key
+        var a = Buffer(_archive.key)
+        var b = Buffer(key)
+        return a.equals(b)
       })
       var duplicate = duplicates[0]
       if (duplicate) {

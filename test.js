@@ -99,6 +99,33 @@ test('drive.create', function (t) {
       done(null, archive)
     }
   })
+
+  t.test('should properly compare different key types', function (t) {
+    t.plan(5)
+    flushToilet()
+    var store = toilet('state.json')
+    var db = memdb()
+    var drive = hyperdrive(db)
+    multidrive(store, createArchive, noop, function (err, drive) {
+      t.ifError(err, 'no err')
+
+      drive.create({ hello: 'world' }, function (err, archive) {
+        t.ifError(err, 'no err')
+
+        drive.create({ key: archive.key }, function (err, _archive, duplicate) {
+          t.ifError(err, 'no err')
+          t.equal(_archive, archive)
+          t.equal(duplicate, true)
+        })
+      })
+    })
+
+    function createArchive (data, done) {
+      var archive = drive.createArchive({ key: data.key })
+      if (data.key) archive.key = Buffer(archive.key)
+      done(null, archive)
+    }
+  })
 })
 
 test('drive.list', function (t) {
