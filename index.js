@@ -23,7 +23,9 @@ function multidrive (store, createArchive, closeArchive, cb) {
   function sink (err, data) {
     if (err) return cb(err)
     var values = Object.keys(data).map(function (key) {
-      return JSON.parse(data[key])
+      var value = JSON.parse(data[key])
+      value.key = key
+      return value
     })
     debug('found %s dats', values.length)
 
