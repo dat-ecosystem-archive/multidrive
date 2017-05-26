@@ -64,6 +64,7 @@ function multidrive (store, createArchive, closeArchive, cb) {
       debug('archive created key=%s', hexKey)
 
       var duplicates = archives.filter(function (_archive) {
+        if (_archive instanceof Error) return false
         var a = Buffer(_archive.key)
         var b = Buffer(key)
         return a.equals(b)
@@ -90,6 +91,7 @@ function multidrive (store, createArchive, closeArchive, cb) {
     debug('close archive key=%s', key)
     var i = 0
     var archive = archives.find(function (archive, j) {
+      if (archive instanceof Error) return
       if (archive.key.toString('hex') !== key) return
       i = j
       return true
