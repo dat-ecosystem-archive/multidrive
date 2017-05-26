@@ -28,14 +28,19 @@ function multidrive (store, createArchive, closeArchive, cb) {
     debug('found %s dats', values.length)
 
     function createWithoutError (data, cb) {
-      createArchive(data, function (err, dat) {
-        if (err) {
-          err.data = data
-          dat = err
-          err = null
-        }
-        cb(err, dat)
-      })
+      try {
+        createArchive(data, function (err, dat) {
+          if (err) {
+            err.data = data
+            dat = err
+            err = null
+          }
+          cb(err, dat)
+        })
+      } catch (err) {
+        err.data = data
+        cb(null, err)
+      }
     }
 
     mapLimit(values, 1, createWithoutError, function (err, _archives) {
