@@ -152,7 +152,7 @@ test('drive.list', function (t) {
   })
 
   t.test('should not fail on initial archive creation errors', function (t) {
-    t.plan(6)
+    t.plan(7)
     flushToilet()
 
     var store = toilet('state.json')
@@ -174,7 +174,8 @@ test('drive.list', function (t) {
           var drives = drive.list()
           t.equal(drives.length, 1, 'one drive')
           t.ok(drives[0] instanceof Error)
-          t.deepEqual(drives[0].data, { some: 'data' })
+          t.equal(drives[0].data.some, 'data')
+          t.equal(drives[0].data.key, archive.key.toString('hex'))
         })
       })
     })
