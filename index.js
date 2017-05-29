@@ -93,13 +93,16 @@ function multidrive (store, createArchive, closeArchive, cb) {
     debug('close archive key=%s', key)
     var i = 0
     var archive = archives.find(function (archive, j) {
-      if (archive instanceof Error) return
-      if (archive.key.toString('hex') !== key) return
+      var _key = (archive.key || archive.data.key).toString('hex')
+      if (_key !== key) return
       i = j
       return true
     })
     if (!archive) return cb(new Error('could not find archive ' + key))
-    closeArchive(archive, function (err) {
+    if (archive instanceof Error) next()
+    else closeArchive(archive, next)
+
+    function next (err) {
       if (err) return cb(err)
       debug('archive closed key=%s', key)
       store.delete(key, function (err) {
@@ -108,6 +111,6 @@ function multidrive (store, createArchive, closeArchive, cb) {
         archives.splice(i, 1)
         cb(null, archive)
       })
-    })
+    }
   }
 }

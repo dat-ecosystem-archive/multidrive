@@ -183,8 +183,8 @@ test('drive.list', function (t) {
 })
 
 test('drive.close', function (t) {
-  t.test('close an archive', function () {
-    t.plan(5)
+  t.test('close an archive', function (t) {
+    t.plan(4)
     flushToilet()
 
     var store = toilet('state.json')
@@ -212,6 +212,44 @@ test('drive.close', function (t) {
       done()
     }
   })
+
+  t.test('close an archive instanceof Error', function (t) {
+    t.plan(5)
+    flushToilet()
+
+    var store = toilet('state.json')
+    multidrive(store, createArchive, closeArchive, function (err, drive) {
+      t.ifError(err, 'no err')
+      drive.create({}, function (err, archive) {
+        t.ifError(err, 'no err')
+        var createArchive = function (data, done) {
+          done(Error('not today'))
+        }
+        multidrive(store, createArchive, noop, function (err, drive) {
+          t.ifError(err, 'no err')
+          var errDat = drive.list()[0]
+          drive.close(errDat.data.key, function (err) {
+            t.ifError(err, 'no err')
+            var drives = drive.list()
+            t.equal(drives.length, 0, 'no drives left')
+          })
+        })
+      })
+    })
+
+    function createArchive (data, done) {
+      var db = memdb()
+      var drive = hyperdrive(db)
+      var archive = drive.createArchive()
+      done(null, archive)
+    }
+
+    function closeArchive (archive, done) {
+      archive.close()
+      done()
+    }
+  })
+  t.end()
 })
 
 test('cleanup toilet', function (t) {
