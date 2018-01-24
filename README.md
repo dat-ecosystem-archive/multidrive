@@ -77,6 +77,9 @@ If an archive with the same key already exists, returns that instead and sets
 ### drive.close(key, callback(err))
 Remove an archive by its public key. Calls `closeArchive()`
 
+### drive.disconnect(callback(err))
+Disconnects the drive from the store and closes all archives (without removing them).
+
 ## Installation
 ```sh
 $ npm install multidrive
