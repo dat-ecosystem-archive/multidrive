@@ -11,10 +11,12 @@ function multidrive (store, createArchive, closeArchive, cb) {
   assert.equal(typeof cb, 'function', 'multidrive: cb should be type function')
 
   var archives = []
+  var _disconnected = false
   var drive = {
     list: list,
     create: create,
-    close: close
+    close: close,
+    disconnect: disconnect
   }
 
   debug('initialize')
@@ -58,6 +60,7 @@ function multidrive (store, createArchive, closeArchive, cb) {
   }
 
   function create (data, cb) {
+    if (_disconnected) return setImmediate(cb.bind(null, new Error('disconnected')))
     debug('create archive data=%j', data)
     createArchive(data, function (err, archive) {
       if (err) return cb(err)
@@ -88,7 +91,32 @@ function multidrive (store, createArchive, closeArchive, cb) {
     })
   }
 
+  function disconnect (cb) {
+    if (_disconnected) return setImmediate(cb.bind(null, new Error('disconnected')))
+    _disconnected = true
+    store = null
+    if (archives.length === 0) return setImmediate(cb)
+    var _archives = archives
+    var count = _archives.length
+    var _err
+    _archives.forEach(function (archive) {
+      closeArchive(archive, next)
+    })
+    archives = []
+
+    function next (err) {
+      count--
+      if (err && !_err) {
+        _err = err
+      }
+      if (count === 0) {
+        cb(_err)
+      }
+    }
+  }
+
   function close (key, cb) {
+    if (_disconnected) return setImmediate(cb.bind(null, new Error('disconnected')))
     if (Buffer.isBuffer(key)) key = key.toString('hex')
     debug('close archive key=%s', key)
     var i = 0
@@ -98,7 +126,7 @@ function multidrive (store, createArchive, closeArchive, cb) {
       i = j
       return true
     })
-    if (!archive) return cb(new Error('could not find archive ' + key))
+    if (!archive) return setImmediate(cb.bind(null, new Error('could not find archive ' + key)))
     if (archive instanceof Error) next()
     else closeArchive(archive, next)
 

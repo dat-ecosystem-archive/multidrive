@@ -66,6 +66,12 @@ Create a new multidrive instance. `db` should be a valid `toiletdb` instance.
 `createArchive` has an api of `createArchive(data, done)` where `data` is passed in
 by `drive.create()` and `done(err, archive)` expects a valid archive.
 
+`closeArchive` has an api of `closeArchive(archive, done)` where `archive` was
+created by `createArchive` and `done(err)` is expected to be called when the
+archive has been properly closed. `closeArchive` is called when a specific
+archive is closed through `.close` or when through `.disconnect` all archives get
+disconnected.
+
 ### archives = drive.list()
 List all `archives` in the `multidrive`.
 
@@ -76,6 +82,9 @@ If an archive with the same key already exists, returns that instead and sets
 
 ### drive.close(key, callback(err))
 Remove an archive by its public key. Calls `closeArchive()`
+
+### drive.disconnect(callback(err))
+Disconnects the drive from the store and closes all archives (without removing them).
 
 ## Installation
 ```sh
