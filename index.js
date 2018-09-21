@@ -62,29 +62,33 @@ function multidrive (store, createArchive, closeArchive, cb) {
   function create (data, cb) {
     if (_disconnected) return setImmediate(cb.bind(null, new Error('disconnected')))
     debug('create archive data=%j', data)
-    createArchive(data, function (err, archive) {
-      if (err) return cb(err)
-      var key = archive.key
-      var hexKey = key.toString('hex')
-      debug('archive created key=%s', hexKey)
 
+    var key = (data && data.key) ? data.key : data
+    if (key) {
       var duplicates = archives.filter(function (_archive) {
         if (_archive instanceof Error) return false
         var a = Buffer(_archive.key)
         var b = Buffer(key)
         return a.equals(b)
       })
+
       var duplicate = duplicates[0]
       if (duplicate) {
-        debug('archive duplicate key=%s', hexKey)
+        debug('archive duplicate key=%s', key.toString('hex'))
         return cb(null, duplicate, Boolean(duplicate))
       }
+    }
+
+    createArchive(data, function (err, archive) {
+      if (err) return cb(err)
+      key = archive.key
+      debug('archive created key=%s', key.toString('hex'))
 
       var _data
       if (data) _data = JSON.stringify(data)
       store.write(key, _data, function (err) {
         if (err) return cb(err)
-        debug('archive stored key=%s', hexKey)
+        debug('archive stored key=%s', key.toString('hex'))
         archives.push(archive)
         cb(null, archive)
       })
