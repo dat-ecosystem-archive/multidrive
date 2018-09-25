@@ -20,7 +20,9 @@ function multidrive (store, createArchive, closeArchive, cb) {
   }
 
   debug('initialize')
-  store.read(sink)
+  store.open(() => {
+    store.read(sink)
+  })
 
   function sink (err, data) {
     if (err) return cb(err)
