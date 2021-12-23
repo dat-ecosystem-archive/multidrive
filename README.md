@@ -1,3 +1,9 @@
+[![deprecated](http://badges.github.io/stability-badges/dist/deprecated.svg)](https://dat-ecosystem.org/) 
+
+More info on active projects and modules at [dat-ecosystem.org](https://dat-ecosystem.org/) <img src="https://i.imgur.com/qZWlO1y.jpg" width="30" height="30" /> 
+
+---
+
 # multidrive [![stability][0]][1]
 [![npm version][2]][3] [![build status][4]][5] [![Test coverage][6]][7]
 [![downloads][8]][9] [![js-standard-style][10]][11]
