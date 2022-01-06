@@ -1,6 +1,6 @@
 {
   "name": "multidrive",
-  "version": "5.2.0",
+  "version": "5.2.1",
   "description": "Manage multiple hyperdrive instances",
   "main": "index.js",
   "scripts": {
